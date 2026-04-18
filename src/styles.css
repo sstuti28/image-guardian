@@ -145,7 +145,32 @@
   }
 
   body {
-    background-color: var(--color-background);
+    background: var(--gradient-bg);
+    background-attachment: fixed;
     color: var(--color-foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
+}
+
+@layer utilities {
+  .text-gradient-cyber {
+    background: var(--gradient-cyber);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-gradient-cyber { background: var(--gradient-cyber); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+  .shadow-neon { box-shadow: var(--shadow-neon); }
+  .grid-bg {
+    background-image:
+      linear-gradient(oklch(0.82 0.20 165 / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0.82 0.20 165 / 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.82 0.20 165 / 0.5); }
+    50% { box-shadow: 0 0 0 12px oklch(0.82 0.20 165 / 0); }
+  }
+  .animate-pulse-glow { animation: pulse-glow 2s infinite; }
 }
