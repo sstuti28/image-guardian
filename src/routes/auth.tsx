@@ -119,6 +119,17 @@ function AuthPage() {
                 >
                   {busy ? "…" : m === "signin" ? "Sign in" : "Create account"}
                 </Button>
+                {m === "signin" && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full text-xs text-muted-foreground hover:text-foreground"
+                    disabled={busy}
+                    onClick={handleResend}
+                  >
+                    Resend confirmation email
+                  </Button>
+                )}
               </TabsContent>
             ))}
           </Tabs>
