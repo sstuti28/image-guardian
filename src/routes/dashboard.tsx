@@ -60,7 +60,7 @@ function Dashboard() {
       setError(null);
       startProgress();
       try {
-        const res = await reverseImageSearch(dataUrl);
+        const res = await reverseImageSearch(file);
         stopProgress();
         setProgress(100);
         setResults(res);
