@@ -60,31 +60,30 @@ export const Route = createFileRoute("/api/reverse-image-search")({
         const mimeMatch = /data:(image\/[a-zA-Z0-9+.-]+);base64/.exec(meta);
         const mime = mimeMatch?.[1] ?? "image/jpeg";
 
-        // Step 1: upload image to a temporary public host so SerpApi Google Lens
-        // can fetch it via URL. We use 0x0.st (anonymous, no API key required).
+        // Step 1: upload image to Supabase Storage to get a public URL.
+        // SerpApi Google Lens needs a fetchable URL. We use a random object name
+        // and the bucket has no SELECT policy, so files cannot be listed —
+        // only direct URL fetches (which the bucket being "public" enables) work.
         let publicUrl: string;
+        let objectPath: string;
         try {
           const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-          const blob = new Blob([bin], { type: mime });
-          const fd = new FormData();
-          fd.append("file", blob, `upload.${mime.split("/")[1] || "jpg"}`);
-          fd.append("expires", "1"); // expire in 1 hour
+          const ext = mime.split("/")[1]?.replace(/[^a-z0-9]/gi, "") || "jpg";
+          objectPath = `scans/${crypto.randomUUID()}.${ext}`;
 
-          const up = await fetch("https://0x0.st", {
-            method: "POST",
-            body: fd,
-            headers: { "User-Agent": "LOOKOUT/1.0 (privacy OSINT tool)" },
-          });
-          if (!up.ok) {
-            const txt = await up.text().catch(() => "");
-            return json(502, {
-              error: `Image hosting failed (${up.status}): ${txt.slice(0, 200) || up.statusText}`,
+          const { error: upErr } = await supabaseAdmin.storage
+            .from("scan-uploads")
+            .upload(objectPath, bin, {
+              contentType: mime,
+              upsert: false,
             });
+          if (upErr) {
+            return json(502, { error: `Upload failed: ${upErr.message}` });
           }
-          publicUrl = (await up.text()).trim();
-          if (!/^https?:\/\//.test(publicUrl)) {
-            return json(502, { error: "Image hosting returned invalid URL" });
-          }
+          const { data: pub } = supabaseAdmin.storage
+            .from("scan-uploads")
+            .getPublicUrl(objectPath);
+          publicUrl = pub.publicUrl;
         } catch (e) {
           return json(502, {
             error: `Upload error: ${e instanceof Error ? e.message : "unknown"}`,
