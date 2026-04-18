@@ -59,28 +59,31 @@ export const Route = createFileRoute("/api/reverse-image-search")({
         const mimeMatch = /data:(image\/[a-zA-Z0-9+.-]+);base64/.exec(meta);
         const mime = mimeMatch?.[1] ?? "image/jpeg";
 
-        // Step 1: upload image to SerpApi's temporary uploader to get a URL.
-        // SerpApi's Google Lens engine accepts a public image URL via `url` param.
-        // We use the official upload helper at https://api.serpapi.com/upload-image
+        // Step 1: upload image to a temporary public host so SerpApi Google Lens
+        // can fetch it via URL. We use 0x0.st (anonymous, no API key required).
         let publicUrl: string;
         try {
           const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
           const blob = new Blob([bin], { type: mime });
           const fd = new FormData();
-          fd.append("api_key", apiKey);
-          fd.append("image", blob, "upload.jpg");
+          fd.append("file", blob, `upload.${mime.split("/")[1] || "jpg"}`);
+          fd.append("expires", "1"); // expire in 1 hour
 
-          const up = await fetch("https://api.serpapi.com/upload-image", {
+          const up = await fetch("https://0x0.st", {
             method: "POST",
             body: fd,
+            headers: { "User-Agent": "LOOKOUT/1.0 (privacy OSINT tool)" },
           });
-          const upJson = (await up.json()) as { image_url?: string; error?: string };
-          if (!up.ok || !upJson.image_url) {
+          if (!up.ok) {
+            const txt = await up.text().catch(() => "");
             return json(502, {
-              error: `Image upload failed: ${upJson.error || up.statusText}`,
+              error: `Image hosting failed (${up.status}): ${txt.slice(0, 200) || up.statusText}`,
             });
           }
-          publicUrl = upJson.image_url;
+          publicUrl = (await up.text()).trim();
+          if (!/^https?:\/\//.test(publicUrl)) {
+            return json(502, { error: "Image hosting returned invalid URL" });
+          }
         } catch (e) {
           return json(502, {
             error: `Upload error: ${e instanceof Error ? e.message : "unknown"}`,
