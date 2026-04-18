@@ -46,13 +46,41 @@ function AuthPage() {
           options: { emailRedirectTo: `${window.location.origin}/dashboard` },
         });
         if (error) throw error;
-        toast.success("Account created. You're in.");
+        toast.success("Account created. Check your email to confirm.");
       } else {
         const { error } = await supabase.auth.signInWithPassword(parsed.data);
-        if (error) throw error;
+        if (error) {
+          if (error.message.toLowerCase().includes("not confirmed")) {
+            toast.error("Email not confirmed. Tap 'Resend confirmation' below.");
+            return;
+          }
+          throw error;
+        }
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Authentication failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleResend = async () => {
+    const emailParse = schema.shape.email.safeParse(email);
+    if (!emailParse.success) {
+      toast.error("Enter your email above first");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: emailParse.data,
+        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      });
+      if (error) throw error;
+      toast.success("Confirmation email sent. Check your inbox.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to resend");
     } finally {
       setBusy(false);
     }
@@ -91,6 +119,17 @@ function AuthPage() {
                 >
                   {busy ? "…" : m === "signin" ? "Sign in" : "Create account"}
                 </Button>
+                {m === "signin" && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full text-xs text-muted-foreground hover:text-foreground"
+                    disabled={busy}
+                    onClick={handleResend}
+                  >
+                    Resend confirmation email
+                  </Button>
+                )}
               </TabsContent>
             ))}
           </Tabs>
