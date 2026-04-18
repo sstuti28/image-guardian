@@ -110,13 +110,19 @@ export const Route = createFileRoute("/api/reverse-image-search")({
           const r = await fetch(`https://serpapi.com/search.json?${params}`);
           lens = await r.json();
           if (!r.ok || lens.error) {
+            // Best-effort cleanup
+            await supabaseAdmin.storage.from("scan-uploads").remove([objectPath]).catch(() => {});
             return json(502, { error: lens.error || `SerpApi error ${r.status}` });
           }
         } catch (e) {
+          await supabaseAdmin.storage.from("scan-uploads").remove([objectPath]).catch(() => {});
           return json(502, {
             error: `Search error: ${e instanceof Error ? e.message : "unknown"}`,
           });
         }
+
+        // Cleanup the temporary upload — privacy-first
+        await supabaseAdmin.storage.from("scan-uploads").remove([objectPath]).catch(() => {});
 
         const results: Sighting[] = (lens.visual_matches ?? [])
           .filter((m) => !!m.link)
