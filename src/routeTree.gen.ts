@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiRiskScoreRouteImport } from './routes/api/risk-score'
 import { Route as ApiReverseImageSearchRouteImport } from './routes/api/reverse-image-search'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -29,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRiskScoreRoute = ApiRiskScoreRouteImport.update({
+  id: '/api/risk-score',
+  path: '/api/risk-score',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiReverseImageSearchRoute = ApiReverseImageSearchRouteImport.update({
   id: '/api/reverse-image-search',
   path: '/api/reverse-image-search',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/api/reverse-image-search': typeof ApiReverseImageSearchRoute
+  '/api/risk-score': typeof ApiRiskScoreRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/api/reverse-image-search': typeof ApiReverseImageSearchRoute
+  '/api/risk-score': typeof ApiRiskScoreRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,30 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/api/reverse-image-search': typeof ApiReverseImageSearchRoute
+  '/api/risk-score': typeof ApiRiskScoreRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/api/reverse-image-search'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/api/reverse-image-search'
+    | '/api/risk-score'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/api/reverse-image-search'
-  id: '__root__' | '/' | '/auth' | '/dashboard' | '/api/reverse-image-search'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/api/reverse-image-search'
+    | '/api/risk-score'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/api/reverse-image-search'
+    | '/api/risk-score'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +92,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
   ApiReverseImageSearchRoute: typeof ApiReverseImageSearchRoute
+  ApiRiskScoreRoute: typeof ApiRiskScoreRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +118,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/risk-score': {
+      id: '/api/risk-score'
+      path: '/api/risk-score'
+      fullPath: '/api/risk-score'
+      preLoaderRoute: typeof ApiRiskScoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/reverse-image-search': {
       id: '/api/reverse-image-search'
       path: '/api/reverse-image-search'
@@ -107,6 +140,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
   ApiReverseImageSearchRoute: ApiReverseImageSearchRoute,
+  ApiRiskScoreRoute: ApiRiskScoreRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
