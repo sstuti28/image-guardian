@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiRiskScoreRouteImport } from './routes/api/risk-score'
 import { Route as ApiReverseImageSearchRouteImport } from './routes/api/reverse-image-search'
+import { Route as ApiDraftTakedownRouteImport } from './routes/api/draft-takedown'
 
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
@@ -40,11 +41,17 @@ const ApiReverseImageSearchRoute = ApiReverseImageSearchRouteImport.update({
   path: '/api/reverse-image-search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDraftTakedownRoute = ApiDraftTakedownRouteImport.update({
+  id: '/api/draft-takedown',
+  path: '/api/draft-takedown',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/api/draft-takedown': typeof ApiDraftTakedownRoute
   '/api/reverse-image-search': typeof ApiReverseImageSearchRoute
   '/api/risk-score': typeof ApiRiskScoreRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/api/draft-takedown': typeof ApiDraftTakedownRoute
   '/api/reverse-image-search': typeof ApiReverseImageSearchRoute
   '/api/risk-score': typeof ApiRiskScoreRoute
 }
@@ -60,6 +68,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/api/draft-takedown': typeof ApiDraftTakedownRoute
   '/api/reverse-image-search': typeof ApiReverseImageSearchRoute
   '/api/risk-score': typeof ApiRiskScoreRoute
 }
@@ -69,6 +78,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/api/draft-takedown'
     | '/api/reverse-image-search'
     | '/api/risk-score'
   fileRoutesByTo: FileRoutesByTo
@@ -76,6 +86,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/api/draft-takedown'
     | '/api/reverse-image-search'
     | '/api/risk-score'
   id:
@@ -83,6 +94,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/api/draft-takedown'
     | '/api/reverse-image-search'
     | '/api/risk-score'
   fileRoutesById: FileRoutesById
@@ -91,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  ApiDraftTakedownRoute: typeof ApiDraftTakedownRoute
   ApiReverseImageSearchRoute: typeof ApiReverseImageSearchRoute
   ApiRiskScoreRoute: typeof ApiRiskScoreRoute
 }
@@ -132,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiReverseImageSearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/draft-takedown': {
+      id: '/api/draft-takedown'
+      path: '/api/draft-takedown'
+      fullPath: '/api/draft-takedown'
+      preLoaderRoute: typeof ApiDraftTakedownRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -139,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  ApiDraftTakedownRoute: ApiDraftTakedownRoute,
   ApiReverseImageSearchRoute: ApiReverseImageSearchRoute,
   ApiRiskScoreRoute: ApiRiskScoreRoute,
 }
