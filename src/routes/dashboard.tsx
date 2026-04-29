@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
-import { reverseImageSearch, type Sighting } from "@/lib/search-client";
+import { reverseImageSearch, scoreSightings, type Sighting } from "@/lib/search-client";
 import { TakedownDialog } from "@/components/TakedownDialog";
-import { Upload, ImageOff, ExternalLink, Gavel, LogOut, RefreshCcw, ShieldAlert } from "lucide-react";
+import { Upload, ImageOff, ExternalLink, Gavel, LogOut, RefreshCcw, ShieldAlert, ShieldCheck, Shield } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
@@ -66,6 +66,9 @@ function Dashboard() {
         setResults(res);
         setPhase("results");
         toast.success(`Found ${res.length} sighting${res.length === 1 ? "" : "s"}`);
+        if (res.length) {
+          scoreSightings(res).then((scored) => setResults(scored)).catch(() => {});
+        }
       } catch (e) {
         stopProgress();
         setError(e instanceof Error ? e.message : "Scan failed");
@@ -220,6 +223,34 @@ function Dashboard() {
                         {r.source_name}
                       </p>
                       <h3 className="mt-1 line-clamp-2 text-sm font-semibold">{r.title || r.source_url}</h3>
+                      {r.risk && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <span
+                            className={
+                              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide " +
+                              (r.risk === "high"
+                                ? "bg-destructive/20 text-destructive"
+                                : r.risk === "medium"
+                                  ? "bg-yellow-500/20 text-yellow-500"
+                                  : "bg-emerald-500/20 text-emerald-500")
+                            }
+                          >
+                            {r.risk === "high" ? (
+                              <ShieldAlert className="h-3 w-3" />
+                            ) : r.risk === "medium" ? (
+                              <Shield className="h-3 w-3" />
+                            ) : (
+                              <ShieldCheck className="h-3 w-3" />
+                            )}
+                            {r.risk} risk
+                          </span>
+                          {r.category && (
+                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                              {r.category}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <div className="mt-4 flex gap-2">
                         <a
                           href={r.source_url}
