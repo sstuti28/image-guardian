@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -24,6 +24,57 @@ type Props = {
 };
 
 const GRIEVANCE_PLACEHOLDER = "grievance@platform.example";
+
+// Known grievance officer / abuse / DMCA contacts for major platforms.
+// Source: each platform's published grievance officer page (IT Rules 2021).
+const GRIEVANCE_DIRECTORY: Record<string, string> = {
+  "facebook.com": "grievance-offcier-meta@fb.com",
+  "fb.com": "grievance-offcier-meta@fb.com",
+  "instagram.com": "grievance-offcier-IG@fb.com",
+  "whatsapp.com": "grievance_officer_wa@support.whatsapp.com",
+  "x.com": "grievance-officer-in@twitter.com",
+  "twitter.com": "grievance-officer-in@twitter.com",
+  "youtube.com": "youtube-india-grievance-officer@google.com",
+  "google.com": "in-grievance-redressal@google.com",
+  "blogger.com": "in-grievance-redressal@google.com",
+  "blogspot.com": "in-grievance-redressal@google.com",
+  "linkedin.com": "in-grievance-officer@linkedin.com",
+  "snapchat.com": "grievance-officer-india@snap.com",
+  "telegram.org": "dmca@telegram.org",
+  "t.me": "dmca@telegram.org",
+  "reddit.com": "grievance-officer-in@reddit.com",
+  "tiktok.com": "grievance.officer@tiktok.com",
+  "pinterest.com": "grievance-officer-in@pinterest.com",
+  "tumblr.com": "grievance-officer-in@automattic.com",
+  "wordpress.com": "grievance-officer-in@automattic.com",
+  "medium.com": "grievance-officer-in@medium.com",
+  "quora.com": "grievance-officer-in@quora.com",
+  "github.com": "copyright@github.com",
+  "discord.com": "grievanceofficer-india@discord.com",
+};
+
+function getRegistrableDomain(host: string): string {
+  const h = host.toLowerCase().replace(/^www\./, "");
+  const parts = h.split(".");
+  if (parts.length <= 2) return h;
+  // Naive 2-label TLD handling for .co.in / .co.uk etc.
+  const last2 = parts.slice(-2).join(".");
+  const last3 = parts.slice(-3).join(".");
+  if (/^(co|gov|ac|net|org)\.[a-z]{2}$/.test(last2)) return last3;
+  return last2;
+}
+
+function deriveGrievanceEmail(sourceUrl: string): string {
+  try {
+    const host = new URL(sourceUrl).hostname;
+    const domain = getRegistrableDomain(host);
+    if (GRIEVANCE_DIRECTORY[domain]) return GRIEVANCE_DIRECTORY[domain];
+    // Fallback: standard abuse alias most hosts honour.
+    return `grievance@${domain}`;
+  } catch {
+    return "";
+  }
+}
 
 function buildNotice({
   fullName,
@@ -75,6 +126,14 @@ export function TakedownDialog({ sighting, userEmail, onOpenChange }: Props) {
   const [aiBody, setAiBody] = useState<string | null>(null);
   const [drafting, setDrafting] = useState(false);
   const [ccSelected, setCcSelected] = useState<Set<string>>(new Set());
+
+  // Auto-populate grievance email when a new sighting is opened.
+  useEffect(() => {
+    if (sighting) {
+      setGrievanceEmail(deriveGrievanceEmail(sighting.source_url));
+      setAiBody(null);
+    }
+  }, [sighting]);
 
   const fallbackBody = useMemo(
     () => (sighting ? buildNotice({ fullName, email: userEmail, sighting }) : ""),
