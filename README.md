@@ -105,3 +105,4 @@ Make sure your environment variables / secrets are configured in the Cloudflare 
 ## License
 
 MIT
+author: stuti singh
